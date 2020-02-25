@@ -1,0 +1,59 @@
+<div class="loading-shade" *ngIf="loading===true">
+</div>
+
+<div class="login-container">
+        <mat-card class="login-card">
+            <mat-card-header>
+                <img src="assets/img/liver.png" alt="logo" width="128" height="128">
+                <mat-card-title>OctDiag</mat-card-title>
+            </mat-card-header>
+            <mat-card-content class="login-card-content">
+                <div *ngIf="!newPasswordRequired">
+                    <form class="login-form" [formGroup]="loginForm" style="width: 100%" (ngSubmit)="onLogin()">
+                        <p>
+                            <mat-form-field>
+                                <input matInput type="text" placeholder="Username" formControlName="username" />
+                                <!--mat-error *ngIf="loginForm.email.hasError('email') && !loginForm.email.hasError('required')">
+                                    Please enter a valid e-mail address.
+                                </mat-error>
+                                <mat-error *ngIf="loginForm.email.hasError('required')">
+                                    E-mail is <strong>required</strong>
+                                </mat-error-->
+                            </mat-form-field>
+                        </p>
+                        <p>
+                            <mat-form-field>
+                                <input matInput type="password" placeholder="Password" formControlName="password" />
+                            </mat-form-field>
+                        </p>
+                        <a mat-button color="accent" class="forgot-password-link" [routerLink]="['/forgotPassword']" routerLinkActive="router-link-active">
+                            Forgot password
+                        </a>
+                        <button mat-button type="submit" color="primary">{{buttonText}}</button>
+                    </form>
+                </div>
+
+                <div *ngIf="newPasswordRequired">
+                    <form [formGroup]="newPasswordForm" style="width: 100%" (ngSubmit)="onNewPasswordProvided()">
+                        <p>
+                            <mat-form-field>
+                                <input matInput type="password" placeholder="Password" formControlName="password" />
+                            </mat-form-field>
+                        </p>
+                        <p>
+                            <mat-form-field>
+                                <input matInput type="password" placeholder="Repeat password" formControlName="repeatPassword" />
+                            </mat-form-field>
+                        </p>
+                        <button mat-button type="submit" color="primary">{{buttonText}}</button>
+                    </form>
+                </div>
+
+                <mat-spinner style="margin-top: 1em;" [diameter]="40" *ngIf="loading === true"></mat-spinner>
+                <div class="login-error" *ngIf="loginError === true">
+                    Invalid username or password
+                </div>
+            </mat-card-content>
+        </mat-card>
+</div>
+<app-login-footer></app-login-footer>

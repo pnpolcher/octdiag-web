@@ -1,0 +1,11 @@
+<mat-sidenav-container class="sidenav">
+    <mat-sidenav mode="side" opened>
+        <mat-nav-list>
+            <a mat-list-item [routerLink]="['/home']" routerLinkActive="router-link-active">Dashboard</a>
+            <a mat-list-item [routerLink]="['/home/users']" routerLinkActive="router-link-active">Users</a>
+        </mat-nav-list>
+    </mat-sidenav>
+    <mat-sidenav-content>
+        <router-outlet></router-outlet>
+    </mat-sidenav-content>
+</mat-sidenav-container>

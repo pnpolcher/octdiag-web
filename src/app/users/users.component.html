@@ -1,1 +1,41 @@
-<p>users works!</p>
+<div class="loading-shade" *ngIf="loading === true">
+    <mat-spinner *ngIf="loading === true"></mat-spinner>
+</div>
+
+<div>
+    <h2>Users</h2>
+    <mat-table [dataSource]="dataSource">
+        <ng-container matColumnDef="givenName">
+            <mat-header-cell *matHeaderCellDef>Given name</mat-header-cell>
+            <mat-cell *matCellDef="let user">{{user.givenName}}</mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="familyName">
+            <mat-header-cell *matHeaderCellDef>Family name</mat-header-cell>
+            <mat-cell *matCellDef="let user">{{user.familyName}}</mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="email">
+            <mat-header-cell *matHeaderCellDef>E-mail</mat-header-cell>
+            <mat-cell *matCellDef="let user">{{user.email}}</mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="phoneNumber">
+            <mat-header-cell *matHeaderCellDef>Phone number</mat-header-cell>
+            <mat-cell *matCellDef="let user">{{user.phoneNumber}}</mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="userCreateDate">
+            <mat-header-cell *matHeaderCellDef>Created on</mat-header-cell>
+            <mat-cell *matCellDef="let user">{{user.userCreateDate}}</mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="userLastModifiedDate">
+            <mat-header-cell *matHeaderCellDef>Last modified</mat-header-cell>
+            <mat-cell *matCellDef="let user">{{user.userLastModifiedDate}}</mat-cell>
+        </ng-container>
+            
+        <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: displayedColumns" (click)="openUserProfile(row)"></mat-row>
+    </mat-table>
+</div>
+<div class="button-bar">
+    <a mat-raised-button color="primary" [routerLink]="['/home/users/create']" routerLinkActive="router-link-active">
+        Create user
+    </a>
+</div>

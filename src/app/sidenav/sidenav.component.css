@@ -1,0 +1,18 @@
+::ng-deep .mat-sidenav-container{
+    position: absolute;
+    top: 64px;
+    height: 100vh !important; /* or 100% */
+    width: 100%;
+    
+}
+
+.mat-sidenav {
+    padding-right: 1%;
+    font-size: 20px;
+}
+
+.mat-sidenav-content {
+    margin-left: 0;
+    padding-left: 4%;
+    padding-right: 1%;
+}

@@ -17,6 +17,7 @@ import { MaterialModule } from './material/material.module';
 import { LoginFooterComponent } from './login-footer/login-footer.component';
 import { SidenavComponent } from './sidenav/sidenav.component';
 import { ToolbarComponent } from './toolbar/toolbar.component';
+import { DashboardComponent } from './dashboard/dashboard.component';
 
 @NgModule({
   declarations: [
@@ -30,6 +31,7 @@ import { ToolbarComponent } from './toolbar/toolbar.component';
     LoginFooterComponent,
     SidenavComponent,
     ToolbarComponent,
+    DashboardComponent,
   ],
   imports: [
     BrowserModule,

@@ -8,7 +8,7 @@
                 <mat-card-title>OctDiag</mat-card-title>
             </mat-card-header>
             <mat-card-content class="login-card-content">
-                <div *ngIf="!newPasswordRequired">
+                <div *ngIf="!newPasswordRequired && !mfaRequired">
                     <form class="login-form" [formGroup]="loginForm" style="width: 100%" (ngSubmit)="onLogin()">
                         <p>
                             <mat-form-field>
@@ -33,8 +33,8 @@
                     </form>
                 </div>
 
-                <div *ngIf="newPasswordRequired">
-                    <form [formGroup]="newPasswordForm" style="width: 100%" (ngSubmit)="onNewPasswordProvided()">
+                <div *ngIf="newPasswordRequired && !mfaRequired">
+                    <form class="login-form" [formGroup]="newPasswordForm" style="width: 100%" (ngSubmit)="onNewPasswordProvided()">
                         <p>
                             <mat-form-field>
                                 <input matInput type="password" placeholder="Password" formControlName="password" />
@@ -45,8 +45,19 @@
                                 <input matInput type="password" placeholder="Repeat password" formControlName="repeatPassword" />
                             </mat-form-field>
                         </p>
-                        <button mat-button type="submit" color="primary">{{buttonText}}</button>
+                        <button mat-button type="submit" color="primary">Change password</button>
                     </form>
+                </div>
+
+                <div *ngIf="mfaRequired">
+                    <form class="login-form" [formGroup]="mfaForm" style="width: 100%" (ngSubmit)="onMfaCodeProvided()">
+                        <p>
+                            <mat-form-field>
+                                <input matInput type="text" placeholder="MFA code" formControlName="mfaCode" />
+                            </mat-form-field>
+                        </p>
+                    </form>
+                    <button mat-button type="submit" color="primary">Submit code</button>
                 </div>
 
                 <mat-spinner style="margin-top: 1em;" [diameter]="40" *ngIf="loading === true"></mat-spinner>

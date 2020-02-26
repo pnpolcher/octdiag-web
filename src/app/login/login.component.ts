@@ -15,6 +15,7 @@ export class LoginComponent implements OnInit {
   buttonText = 'Login';
 
   newPasswordRequired: boolean;
+  mfaRequired: boolean;
   userAttributes: any;
   requiredAttributes: any;
 
@@ -41,8 +42,16 @@ export class LoginComponent implements OnInit {
     ])
   });
 
+  mfaForm = new FormGroup({
+    mfaCode: new FormControl('', [
+      Validators.required,
+      Validators.pattern(/^\d{6}$/g)
+    ])
+  });
+
   constructor(private loginService: LoginService, private router: Router) {
     this.newPasswordRequired = false;
+    this.mfaRequired = false;
   }
 
   ngOnInit() {
@@ -78,18 +87,26 @@ export class LoginComponent implements OnInit {
   }
 
   onMfaRequired(that: any) {
+    that.loading = false;
+    that.mfaRequired = true;
+  }
 
+  onMfaCodeProvided() {
+    this.loading = true;
+    const mfaCode = this.mfaForm.get('mfaCode').value.toString().trim();
+    console.log(mfaCode)
+    this.loginService.completeMfaChallenge(mfaCode);
   }
 
   onNewPasswordRequired(that: any, userAttributes: any, requiredAttributes: any) {
     that.loading = false;
+    that.mfaRequired = false;
     that.newPasswordRequired = true;
     that.userAttributes = userAttributes;
     that.requiredAttributes = requiredAttributes;
   }
 
   onNewPasswordProvided() {
-
     if (this.newPasswordForm.invalid) {
       return;
     }

@@ -107,9 +107,11 @@ export class LoginService {
   }
 
   onLoginMfaRequired(details, onMfaRequiredCallback: (that: any) => void, controller: any) {
-    // cognitoUser.sendMFACode(verificationCode, this);
-    console.error('MFA not supported.');
     onMfaRequiredCallback(controller);
+  }
+
+  completeMfaChallenge(verificationCode: string) {
+    this.cognitoUser.sendMFACode(verificationCode, this.loginCallbacks);
   }
 
   onLoginNewPasswordRequired(

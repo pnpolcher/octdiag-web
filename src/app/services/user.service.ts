@@ -4,6 +4,7 @@ import { environment } from '../../environments/environment';
 
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 import { User } from '../model/user';
 
@@ -29,23 +30,25 @@ export class UserService {
   getSingleUser(id: string): Observable<User> {
     return this.http.get<User>(environment.baseApiUrl + 'users?id=' + id, {
       headers: this.getHeaders()
-    });
+    }).pipe(map(x => {
+      return (Array.isArray(x) && x.length > 0) ? x[0] : null;
+    }));
   }
 
-  createUser(user: User): void {
-    this.http.post(environment.baseApiUrl + 'users', user, {
+  createUser(user: User): Observable<void> {
+    return this.http.post<void>(environment.baseApiUrl + 'users', user, {
       headers: this.getHeaders()
     });
   }
 
-  updateUser(user: User): void {
-    this.http.put(environment.baseApiUrl + 'users', user, {
+  updateUser(user: User): Observable<void> {
+    return this.http.put<void>(environment.baseApiUrl + 'users', user, {
       headers: this.getHeaders()
     });
   }
 
-  deleteUser(id: string): void {
-    this.http.delete(environment.baseApiUrl + 'users?id=' + id, {
+  deleteUser(id: string): Observable<void> {
+    return this.http.delete<void>(environment.baseApiUrl + 'users?id=' + id, {
       headers: this.getHeaders()
     });
   }

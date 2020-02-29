@@ -1,1 +1,25 @@
-<p>create-user works!</p>
+<div class="loading-shade" *ngIf="loading === true">
+    <mat-spinner *ngIf="loading === true"></mat-spinner>
+</div>
+
+<h2>New user</h2>
+
+<form class="user-form" [formGroup]="userForm" (ngSubmit)="onSave()">
+    <mat-form-field>
+        <input matInput type="text" placeholder="Username" formControlName="username" />
+    </mat-form-field>
+    <mat-form-field>
+        <input matInput type="text" placeholder="Given name" formControlName="givenName" />
+    </mat-form-field>
+    <mat-form-field>
+        <input matInput type="text" placeholder="Family name" formControlName="familyName" />
+    </mat-form-field>
+    <mat-form-field>
+        <input matInput type="text" placeholder="Email" formControlName="email" />
+    </mat-form-field>
+    <mat-form-field>
+        <input matInput type="text" placeholder="Phone number" formControlName="phoneNumber" />
+    </mat-form-field>
+
+    <button class="save-button" mat-button type="submit" color="primary">Save</button>
+</form>

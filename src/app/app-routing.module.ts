@@ -10,7 +10,7 @@ import { UsersComponent } from './users/users.component';
 import { AuthGuardService } from './services/auth-guard.service';
 import { UserProfileComponent } from './user-profile/user-profile.component';
 import { CreateUserComponent } from './create-user/create-user.component';
-
+import { DictationComponent } from './dictation/dictation.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -31,6 +31,10 @@ const routes: Routes = [
       {
         path: 'users/create',
         component: CreateUserComponent,
+      },
+      {
+        path: 'dictation',
+        component: DictationComponent,
       },
       {
         path: '',

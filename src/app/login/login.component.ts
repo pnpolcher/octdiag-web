@@ -82,19 +82,21 @@ export class LoginComponent implements OnInit {
   }
 
   onLoginFailure(that: any, errCode: CognitoAuthErrors) {
+    console.log('Component onLoginFailure: ' + errCode.toString());
     that.loading = false;
     that.loginError = true;
   }
 
   onMfaRequired(that: any) {
+    console.log('onMfaRequired');
     that.loading = false;
     that.mfaRequired = true;
   }
 
   onMfaCodeProvided() {
+    console.log('onMfaCodeProvided');
     this.loading = true;
     const mfaCode = this.mfaForm.get('mfaCode').value.toString().trim();
-    console.log(mfaCode)
     this.loginService.completeMfaChallenge(mfaCode);
   }
 

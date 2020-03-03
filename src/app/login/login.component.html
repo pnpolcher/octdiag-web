@@ -56,8 +56,8 @@
                                 <input matInput type="text" placeholder="MFA code" formControlName="mfaCode" />
                             </mat-form-field>
                         </p>
+                        <button mat-button type="submit" color="primary">Submit code</button>
                     </form>
-                    <button mat-button type="submit" color="primary">Submit code</button>
                 </div>
 
                 <mat-spinner style="margin-top: 1em;" [diameter]="40" *ngIf="loading === true"></mat-spinner>

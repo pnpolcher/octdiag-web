@@ -3,6 +3,9 @@ import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 
 import * as AmazonCognitoIdentity from 'amazon-cognito-identity-js';
+import * as AWS from 'aws-sdk';
+
+import { Observable, Subject } from 'rxjs';
 
 const ACCESS_TOKEN_KEY = 'accessToken';
 const ID_TOKEN_KEY = 'idToken';
@@ -32,6 +35,24 @@ export class LoginService {
   userAttributes: any;
 
   cognitoSession: AmazonCognitoIdentity.CognitoUserSession = null;
+
+  private temporaryCredentials$ = new Subject<AWS.CognitoIdentityCredentials>();
+
+  private _accessKeyId: string;
+  private _secretAccessKey: string;
+  private _sessionToken: string;
+
+  get accessKeyId(): string {
+    return this._accessKeyId;
+  }
+
+  get secretAccessKey(): string {
+    return this._secretAccessKey;
+  }
+
+  get sessionToken(): string {
+    return this._sessionToken;
+  }
 
   constructor() {
     this.userPool = new AmazonCognitoIdentity.CognitoUserPool(environment.cognitoUserPoolData);
@@ -73,6 +94,7 @@ export class LoginService {
     };
 
     this.cognitoUser.authenticateUser(authenticationDetails, this.loginCallbacks);
+    console.log('Cognito authenticateUser called.')
   }
 
   onLoginSuccess(
@@ -80,9 +102,12 @@ export class LoginService {
     onSuccessCallback: (that: any) => void,
     controller: any) {
 
-    this.cognitoUser = null;
-    this.cognitoSession = session;
-    onSuccessCallback(controller);
+    console.log('onLoginSuccess');
+    this.getTemporaryCredentials(this.getIdToken()).subscribe(x => {
+      this.cognitoUser = null;
+      this.cognitoSession = session;
+      onSuccessCallback(controller);
+    });
   }
 
   onLoginFailure(
@@ -93,7 +118,12 @@ export class LoginService {
     let authFailedCode: CognitoAuthErrors;
     this.cognitoUser = null;
 
+    console.log('onLoginFailure. Code = ' + err.code);
     switch (err.code) {
+      case 'CodeMismatchException':
+        authFailedCode = CognitoAuthErrors.CODE_MISMATCH;
+        break;
+
       case 'NotAuthorizedException':
         authFailedCode = CognitoAuthErrors.NOT_AUTHORIZED;
         break;
@@ -107,10 +137,12 @@ export class LoginService {
   }
 
   onLoginMfaRequired(details, onMfaRequiredCallback: (that: any) => void, controller: any) {
+    console.log('onLoginMfaRequired');
     onMfaRequiredCallback(controller);
   }
 
   completeMfaChallenge(verificationCode: string) {
+    console.log('completeMfaChallenge');
     this.cognitoUser.sendMFACode(verificationCode, this.loginCallbacks);
   }
 
@@ -213,54 +245,34 @@ export class LoginService {
     this.cognitoUser.confirmPassword(verificationCode, password, this.forgotPasswordCallbacks);
   }
 
-  /*
-  private completeNewPasswordChallengeSuccess(
-    session: AmazonCognitoIdentity.CognitoUserSession,
-    onSuccessCallback: (that: any, session: AmazonCognitoIdentity.CognitoUserSession) => void,
-    controller: any) {
-
-    onSuccessCallback(session, controller);
-  }
-
-  private completeNewPasswordChallengeFailure(
-    err: any,
-    onFailureCallback: (that: any, errCode: CognitoAuthErrors) => void,
-    controller: any) {
-
-    let errCode;
-
-    switch (err.code) {
-      case 'CodeMismatchException':
-        errCode = CognitoAuthErrors.CODE_MISMATCH;
-        break;
-
-      case 'InvalidParameterException':
-        errCode = CognitoAuthErrors.INVALID_PARAMETER;
-        break;
-
-      case 'LimitExceededException':
-        errCode = CognitoAuthErrors.LIMIT_EXCEEDED;
-        break;
-
-      default:
-        errCode = CognitoAuthErrors.UNEXPECTED;
-        break;
-    }
-
-    onFailureCallback(controller, errCode);
-  }
-  */
-
   getIdToken(): string {
-    const lastAuthUser =
-      localStorage.getItem(
-        'CognitoIdentityServiceProvider.' +
-        environment.cognitoAppClient +
-        '.LastAuthUser');
+    const lastAuthUser = localStorage.getItem(
+      'CognitoIdentityServiceProvider.' + environment.cognitoAppClient + '.LastAuthUser');
     const token = localStorage.getItem(
-      'CognitoIdentityServiceProvider.' +
-      environment.cognitoAppClient + '.' +
-      lastAuthUser + '.idToken');
+      'CognitoIdentityServiceProvider.' + environment.cognitoAppClient + '.' + lastAuthUser + '.idToken');
+
     return token;
+  }
+
+  getTemporaryCredentials(idToken: string): Observable<AWS.CognitoIdentityCredentials> {
+    const logins = {}
+    logins['cognito-idp.' + environment.cognitoUserPoolData.Region +
+      '.amazonaws.com/' + environment.cognitoUserPoolData.UserPoolId] = idToken;
+
+    console.log('getTemporaryCredentials');
+    AWS.config.region = environment.cognitoUserPoolData.Region;
+    const credentials = new AWS.CognitoIdentityCredentials({
+      IdentityPoolId: environment.cognitoIdentityPoolId,
+      Logins: logins
+    });
+    AWS.config.credentials = credentials;
+    credentials.get(() => {
+      this.temporaryCredentials$.next(credentials);
+      this._accessKeyId = AWS.config.credentials.accessKeyId;
+      this._secretAccessKey = AWS.config.credentials.secretAccessKey;
+      this._sessionToken = AWS.config.credentials.sessionToken;
+    });
+
+    return this.temporaryCredentials$.asObservable();
   }
 }

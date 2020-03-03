@@ -4,11 +4,16 @@
 
 export const environment = {
   production: false,
-  cognitoAppClient: '4klirmmgp75n92uvvqgotof9fu',
+  cognitoAppClient: '37iii7ghck019vlptb8kdo1tdt',
+  cognitoIdentityPoolId: 'eu-west-1:225d3c5f-7497-4559-9e9d-52784609c1ee',
   baseApiUrl: 'https://8dd164dpi9.execute-api.eu-west-1.amazonaws.com/dev/',
   cognitoUserPoolData: {
-    UserPoolId: 'eu-west-1_mye99IxbR',
-    ClientId: '4klirmmgp75n92uvvqgotof9fu'
+    ClientId: '37iii7ghck019vlptb8kdo1tdt',
+    Region: 'eu-west-1',
+    UserPoolId: 'eu-west-1_pYt9yFwuU',
+  },
+  transcribeMedicalData: {
+    region: 'eu-west-1'
   }
 };
 

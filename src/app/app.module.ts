@@ -18,6 +18,7 @@ import { LoginFooterComponent } from './login-footer/login-footer.component';
 import { SidenavComponent } from './sidenav/sidenav.component';
 import { ToolbarComponent } from './toolbar/toolbar.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { DictationComponent } from './dictation/dictation.component';
 
 @NgModule({
   declarations: [
@@ -32,6 +33,7 @@ import { DashboardComponent } from './dashboard/dashboard.component';
     SidenavComponent,
     ToolbarComponent,
     DashboardComponent,
+    DictationComponent,
   ],
   imports: [
     BrowserModule,

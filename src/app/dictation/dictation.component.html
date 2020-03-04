@@ -1,1 +1,8 @@
-<button mat-button type="button" color="primary" (click)="onStartStopRecording()">{{startStopCaption}} recording</button>
+<form class="medical-notes-form" [formGroup]="notesForm" (ngSubmit)="onStartDiagnosis()">
+    <mat-form-field class="medical-notes-textarea">
+        <mat-label>Notes</mat-label>
+        <textarea matInput placeholder="Please type in your notes or start recording." value="" formControlName="notes"></textarea>
+    </mat-form-field>
+    <button mat-button type="submit" color="primary">Diagnose</button>
+    <button mat-button type="button" color="primary" (click)="onStartStopRecording()">{{startStopCaption}} recording</button>
+</form>

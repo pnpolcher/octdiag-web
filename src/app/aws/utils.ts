@@ -26,6 +26,7 @@ export class AwsSignatureV4 {
 
     private createCanonicalQueryString(): string {
         return Object.keys(this.query).sort().map(key => {
+            console.log('key = ' + key + ', value = ' + this.query[key]);
             return encodeURIComponent(key) + '=' + encodeURIComponent(this.query[key]);
         }).join('&');
     }
@@ -74,22 +75,22 @@ export class AwsSignatureV4 {
         this.headers = options.headers || {};
         this.headers['Host'] = this.host;
 
-        const query = (typeof options.query === 'string') ? querystring.parse(options.query) : (options.query || {});
-        query['X-Amz-Algorithm'] = 'AWS4-HMAC-SHA256';
-        query['X-Amz-Credential'] = options.key + '/' + this.createCredentialScope(options.timestamp);
-        query['X-Amz-Date'] = this.toTime(options.timestamp);
-        query['X-Amz-Expires'] = options.expires;
-        query['X-Amz-SignedHeaders'] = this.createSignedHeaders();
+        this.query = (typeof options.query === 'string') ? querystring.parse(options.query) : (options.query || {});
+        this.query['X-Amz-Algorithm'] = 'AWS4-HMAC-SHA256';
+        this.query['X-Amz-Credential'] = options.key + '/' + this.createCredentialScope(options.timestamp);
+        this.query['X-Amz-Date'] = this.toTime(options.timestamp);
+        this.query['X-Amz-Expires'] = options.expires;
+        this.query['X-Amz-SignedHeaders'] = this.createSignedHeaders();
         if (options.sessionToken) {
-            query['X-Amz-Security-Token'] = options.sessionToken;
+            this.query['X-Amz-Security-Token'] = options.sessionToken;
         }
 
         const canonicalRequest = this.createCanonicalRequest(payload);
         const stringToSign = this.createStringToSign(options.timestamp, canonicalRequest);
         const signature = this.createSignature(stringToSign, options.timestamp, options.secret);
-        query['X-Amz-Signature'] = signature;
+        this.query['X-Amz-Signature'] = signature;
 
-        return options.protocol + '://' + this.host + this.pathname + '?' + querystring.stringify(query);
+        return options.protocol + '://' + this.host + this.pathname + '?' + querystring.stringify(this.query);
     }
 
     private toTime(timestamp: number): string {

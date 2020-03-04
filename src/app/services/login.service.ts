@@ -38,20 +38,16 @@ export class LoginService {
 
   private temporaryCredentials$ = new Subject<AWS.CognitoIdentityCredentials>();
 
-  private _accessKeyId: string;
-  private _secretAccessKey: string;
-  private _sessionToken: string;
-
   get accessKeyId(): string {
-    return this._accessKeyId;
+    return localStorage.getItem('STS.accessKeyId');
   }
 
   get secretAccessKey(): string {
-    return this._secretAccessKey;
+    return localStorage.getItem('STS.secretAccessKey');
   }
 
   get sessionToken(): string {
-    return this._sessionToken;
+    return localStorage.getItem('STS.sessionToken');
   }
 
   constructor() {
@@ -268,9 +264,9 @@ export class LoginService {
     AWS.config.credentials = credentials;
     credentials.get(() => {
       this.temporaryCredentials$.next(credentials);
-      this._accessKeyId = AWS.config.credentials.accessKeyId;
-      this._secretAccessKey = AWS.config.credentials.secretAccessKey;
-      this._sessionToken = AWS.config.credentials.sessionToken;
+      localStorage.setItem('STS.accessKeyId', AWS.config.credentials.accessKeyId);
+      localStorage.setItem('STS.secretAccessKey', AWS.config.credentials.secretAccessKey);
+      localStorage.setItem('STS.sessionToken', AWS.config.credentials.sessionToken);
     });
 
     return this.temporaryCredentials$.asObservable();

@@ -54,23 +54,25 @@ export class TranscribeMedicalService {
     options.protocol = 'wss';
     options.secret = this.loginService.secretAccessKey;
     options.sessionToken = this.loginService.sessionToken;
+    console.log(options.sessionToken);
     options.query = 'language-code=en-US&media-encoding=pcm&sample-rate=16000&specialty=PRIMARYCARE&type=DICTATION';
 
     return this.transcribeSigner.createPresignedUrl(
       crypto.createHash('sha256').update('', 'utf8').digest('hex'), options);
   }
 
-  private onWebSocketOpen() {
-    this.micStream.on('data', rawAudioChunk => {
+  private onWebSocketOpen(controller: any) {
+    console.log('Websocket is open.');
+    controller.micStream.on('data', rawAudioChunk => {
       const binary = this.convertAudioToBinaryMessage(rawAudioChunk);
-      if (this.websocket.OPEN) {
-        this.websocket.send(binary);
+      if (controller.websocket.OPEN) {
+        controller.websocket.send(binary);
       }
     });
   }
 
-  private onWebSocketMessage(message: MessageEvent) {
-    const messageWrapper = this.eventStreamMarshaller.unmarshall(Buffer.from(message.data));
+  private onWebSocketMessage(controller: any, message: MessageEvent) {
+    const messageWrapper = controller.eventStreamMarshaller.unmarshall(Buffer.from(message.data));
     const messageBody = JSON.parse(String.fromCharCode.apply(String, messageWrapper.body));
 
     if (messageWrapper.headers[':message-type'].value === 'event') {
@@ -82,25 +84,29 @@ export class TranscribeMedicalService {
           transcript.results = results;
           transcript.text = decodeURIComponent(escape(results[0].Alternatives[0].Transcript));
           transcript.isPartial = results[0].IsPartial;
-          this.onTranscript(transcript);
+          controller.onTranscript(transcript);
         }
       }
     } else {
-      this.transcribeException = true;
+      controller.transcribeException = true;
+      console.error(messageBody.Message);
       // showError(messageBody.Message);
-  }
+    }
   }
 
-  private onWebSocketError() {
-    this.socketError = true;
+  private onWebSocketError(controller: any) {
+    console.error('Websocket error');
+    controller.socketError = true;
     // showError('...');
   }
 
-  private onWebSocketClose(closeEvent: CloseEvent) {
-    this.micStream.stop();
+  private onWebSocketClose(controller: any, closeEvent: CloseEvent) {
+    console.log('Websocket closed.');
+    controller.micStream.stop();
 
-    if (!this.socketError && !this.transcribeException) {
+    if (!controller.socketError && !controller.transcribeException) {
       if (closeEvent.code !== 1000) {
+        console.error('Close event reason = ' + closeEvent.reason);
         // showError('Streaming exception ' + closeEvent.reason);
       }
     }
@@ -108,6 +114,7 @@ export class TranscribeMedicalService {
 
   startTranscription(userMediaStream: MediaStream, onTranscript: (transcript: Transcript) => void, onError) {
 
+    console.log('Start transcription.');
     this.socketError = false;
     this.transcribeException = false;
 
@@ -123,21 +130,24 @@ export class TranscribeMedicalService {
       // Open the websocket.
       this.websocket = new WebSocket(url);
       this.websocket.binaryType = 'arraybuffer';
-      this.websocket.onopen = this.onWebSocketOpen;
-      this.websocket.onmessage = this.onWebSocketMessage;
-      this.websocket.onerror = this.onWebSocketError;
-      this.websocket.onclose = this.onWebSocketClose;
+      this.websocket.onopen = () => this.onWebSocketOpen(this);
+      this.websocket.onmessage = (message) => this.onWebSocketMessage(this, message);
+      this.websocket.onerror = () => this.onWebSocketError(this);
+      this.websocket.onclose = (closeEvent) => this.onWebSocketClose(this, closeEvent);
+      console.log('Transcription started.');
     } catch (error) {
       console.log(error);
     }
   }
 
   stopTranscription() {
+    console.log('Stopping transcription.');
     this.closeSocket();
   }
 
   private closeSocket() {
     if (this.websocket.OPEN) {
+      console.log('Closing socket.');
       this.micStream.stop();
 
       const emptyMessage = this.getAudioEventMessage(Buffer.from([]));

@@ -60,7 +60,7 @@ import * as process from 'process';
 
 // As per https://github.com/angular/angular-cli/issues/9827
 (window as any).global = window;
-window.Buffer = global.Buffer || require('buffer').Buffer;
+window['Buffer'] = global.Buffer || require('buffer').Buffer;
 window.process = process;
 
 /***************************************************************************************************

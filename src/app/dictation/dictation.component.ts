@@ -4,6 +4,13 @@ import { TranscribeMedicalService } from '../services/transcribe-medical.service
 import { Transcript } from '../model/transcript';
 import { Validators, FormControl, FormGroup } from '@angular/forms';
 
+import { DiagnoseService } from '../services/diagnose.service';
+import { DataSource } from '@angular/cdk/table';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { Diagnosis } from '../model/diagnosis';
+import { catchError, finalize } from 'rxjs/operators';
+import { DiagnoseResponse } from '../model/diagnose-response';
+
 @Component({
   selector: 'app-dictation',
   templateUrl: './dictation.component.html',
@@ -11,6 +18,7 @@ import { Validators, FormControl, FormGroup } from '@angular/forms';
 })
 export class DictationComponent implements OnInit {
 
+  loading = false;
   sessionToken: string;
   startStopCaption = 'Start';
   recording = false;
@@ -24,7 +32,15 @@ export class DictationComponent implements OnInit {
 
   transcriptText: string;
 
-  constructor(private loginService: LoginService, private transcribeService: TranscribeMedicalService) { }
+  dataSource = new DiagnosesDataSource(this.diagnoseService, this);
+  displayedColumns = [
+    'name',
+    'count',
+    'frequency'
+  ];
+
+  constructor(private diagnoseService: DiagnoseService, private loginService: LoginService,
+              private transcribeService: TranscribeMedicalService) { }
 
   ngOnInit(): void {
     this.sessionToken = this.loginService.sessionToken;
@@ -66,4 +82,35 @@ export class DictationComponent implements OnInit {
     this.recording = !this.recording;
   }
 
+  onStartDiagnosis() {
+    this.dataSource.diagnose(this.notesForm.get('notes').value);
+  }
+}
+
+class DiagnosesDataSource extends DataSource<any> {
+
+  private diagnosesSubject = new BehaviorSubject<Diagnosis[]>([]);
+
+  constructor(private diagnoseService: DiagnoseService, private controller: DictationComponent) {
+    super();
+  }
+
+  connect(): Observable<Diagnosis[]> {
+    return this.diagnosesSubject.asObservable();
+  }
+
+  disconnect() {
+    this.diagnosesSubject.complete();
+  }
+
+  diagnose(notes: string) {
+    this.controller.loading = true;
+    return this.diagnoseService.diagnose(notes).pipe(
+      catchError(() => of([])),
+      finalize(() => this.controller.loading = false))
+      .subscribe((diagnoseResponse: DiagnoseResponse) => {
+        this.diagnosesSubject.next(diagnoseResponse.diagnoses);
+      }
+    );
+  }
 }

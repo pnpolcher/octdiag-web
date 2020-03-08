@@ -1,8 +1,36 @@
+<div class="loading-shade" *ngIf="loading === true">
+    <mat-spinner *ngIf="loading === true"></mat-spinner>
+</div>
+
 <form class="medical-notes-form" [formGroup]="notesForm" (ngSubmit)="onStartDiagnosis()">
     <mat-form-field class="medical-notes-textarea">
         <mat-label>Notes</mat-label>
-        <textarea matInput placeholder="Please type in your notes or start recording." value="" formControlName="notes"></textarea>
+        <textarea matInput placeholder="Please type in your notes or start recording."
+                           value="" rows="3"
+                           formControlName="notes"></textarea>
     </mat-form-field>
     <button mat-button type="submit" color="primary">Diagnose</button>
     <button mat-button type="button" color="primary" (click)="onStartStopRecording()">{{startStopCaption}} recording</button>
 </form>
+
+<div>
+    <h2>Diagnosis</h2>
+    <mat-table [dataSource]="dataSource">
+        <ng-container matColumnDef="name">
+            <mat-header-cell *matHeaderCellDef>Pathology</mat-header-cell>
+            <mat-cell *matCellDef="let diagnosis">{{diagnosis.name}}</mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="count">
+            <mat-header-cell *matHeaderCellDef>Symptoms matched</mat-header-cell>
+            <mat-cell *matCellDef="let diagnosis">{{diagnosis.count}}</mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="frequency">
+            <mat-header-cell *matHeaderCellDef>Relative symptom frequency</mat-header-cell>
+            <mat-cell *matCellDef="let diagnosis">{{diagnosis.frequency}}</mat-cell>
+        </ng-container>
+
+        <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: displayedColumns" (click)="onSelectDiagnosis(row)"></mat-row>
+    </mat-table>
+</div>
+<p>No diagnoses available, yet.</p>

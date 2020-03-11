@@ -18,7 +18,9 @@
     <mat-table [dataSource]="dataSource">
         <ng-container matColumnDef="name">
             <mat-header-cell *matHeaderCellDef>Pathology</mat-header-cell>
-            <mat-cell *matCellDef="let diagnosis">{{diagnosis.name}}</mat-cell>
+            <mat-cell *matCellDef="let diagnosis">
+                {{diagnosis.name}}
+            </mat-cell>
         </ng-container>
         <ng-container matColumnDef="count">
             <mat-header-cell *matHeaderCellDef>Symptoms matched</mat-header-cell>

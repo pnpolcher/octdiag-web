@@ -13,7 +13,19 @@
     <button mat-button type="button" color="primary" (click)="onStartStopRecording()">{{startStopCaption}} recording</button>
 </form>
 
-<div>
+<div *ngIf="diagnosesFound">
+    <h2>Symptoms</h2>
+    <mat-list role="list">
+        <mat-list-item role="listitem" *ngFor="let symptom of symptoms;">{{symptom.name}} - ICD10CM: {{symptom.icd10cm.code}} ({{symptom.icd10cm.description}})</mat-list-item>
+    </mat-list>
+
+    <h2>Personal Health Information</h2>
+    <mat-list role="list">
+        <mat-list-item role="listitem" *ngIf="phi.age !== undefined"><b>Age:</b> {{phi.age}}</mat-list-item>
+        <mat-list-item role="listitem" *ngIf="phi.name !== undefined"><b>Name:</b> {{phi.name}}</mat-list-item>
+        <mat-list-item role="listitem" *ngIf="phi.address !== undefined"><b>Address/Location:</b> {{phi.address}}</mat-list-item>
+    </mat-list>
+
     <h2>Diagnosis</h2>
     <mat-table [dataSource]="dataSource">
         <ng-container matColumnDef="name">
@@ -35,4 +47,4 @@
         <mat-row *matRowDef="let row; columns: displayedColumns" (click)="onSelectDiagnosis(row)"></mat-row>
     </mat-table>
 </div>
-<p>No diagnoses available, yet.</p>
+<p *ngIf="!diagnosesFound">No diagnoses available, yet.</p>

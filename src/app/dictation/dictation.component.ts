@@ -10,6 +10,8 @@ import { BehaviorSubject, Observable, of } from 'rxjs';
 import { Diagnosis } from '../model/diagnosis';
 import { catchError, finalize } from 'rxjs/operators';
 import { DiagnoseResponse } from '../model/diagnose-response';
+import { PersonalHealthInfo } from '../model/personal-health-info';
+import { Symptom } from '../model/symptom';
 
 @Component({
   selector: 'app-dictation',
@@ -19,10 +21,13 @@ import { DiagnoseResponse } from '../model/diagnose-response';
 export class DictationComponent implements OnInit {
 
   loading = false;
+  diagnosesFound = false;
   sessionToken: string;
   startStopCaption = 'Start';
   recording = false;
   mediaStream: MediaStream = null;
+  phi: PersonalHealthInfo;
+  symptoms: Symptom[] = [];
 
   notesForm = new FormGroup({
     notes: new FormControl('', [
@@ -85,6 +90,10 @@ export class DictationComponent implements OnInit {
   onStartDiagnosis() {
     this.dataSource.diagnose(this.notesForm.get('notes').value);
   }
+
+  onSelectDiagnosis(row) {
+    
+  }
 }
 
 class DiagnosesDataSource extends DataSource<any> {
@@ -107,9 +116,15 @@ class DiagnosesDataSource extends DataSource<any> {
     this.controller.loading = true;
     return this.diagnoseService.diagnose(notes).pipe(
       catchError(() => of([])),
-      finalize(() => this.controller.loading = false))
+      finalize(() => {
+        this.controller.loading = false;
+      }))
       .subscribe((diagnoseResponse: DiagnoseResponse) => {
+        console.log(diagnoseResponse);
+        this.controller.diagnosesFound = diagnoseResponse.diagnoses.length > 0;
         this.diagnosesSubject.next(diagnoseResponse.diagnoses);
+        this.controller.phi = diagnoseResponse.phi;
+        this.controller.symptoms = diagnoseResponse.symptoms;
       }
     );
   }

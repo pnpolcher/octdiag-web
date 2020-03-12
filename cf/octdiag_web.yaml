@@ -1,19 +1,60 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: 'Static website hosting with S3 and CloudFront'
 Parameters:
+  Environment:
+    Description: 'The environment this website is installed in.'
+    Type: String
+    AllowedValues:
+      - prod
+      - qa
+      - dev
+    Default: 'dev'
+
   DefaultRootObject:
     Description: 'The default path for the index document.'
     Type: String
     Default: 'index.html'
+
   ErrorPagePath:
     Description: 'The path of the error page for the website (e.g. /error.html). Must be a root-relative path.'
     Type: String
     Default: '/404.html'
-Resources:
-  # Create the bucket to contain the website HTML
-  S3Bucket:
-    Type: 'AWS::S3::Bucket'
 
+  ACMCertificateIdentifier:
+    Description:    The AWS Certificate Manager (ACM) certificate identifier.
+    Type:           String
+    Default:        "6959748a-4648-4f9b-a529-3f9704c59df1"
+
+  AlternateDomainNames:
+    Description:    CNAMEs (alternate domain names), if any, for the distribution. Example. mydomain.com
+    Type:           String
+    Default:        "iad.octdiag.net"
+
+  SslSupportMethod:
+    Description:    Specifies how CloudFront serves HTTPS requests.
+    Type:           String
+    Default:        "sni-only"
+    AllowedValues:
+      - sni-only
+      - vip
+
+  MinimumProtocolVersion:
+    Description:    The minimum version of the SSL protocol that you want CloudFront to use for HTTPS connections.
+    Type:           String
+    Default:        "TLSv1.1_2016"
+    AllowedValues:
+      - TLSv1
+      - TLSv1.2_2018
+      - TLSv1.1_2016
+      - TLSv1_2016
+      - SSLv3
+
+  S3Bucket:
+    Description:    The name of the S3 bucket where the website is stored.
+    Type:           String
+    Default:        "iad.octdiag.net"
+
+Resources:
   # Configure the bucket as a CloudFront Origin
   ReadPolicy:
     Type: 'AWS::S3::BucketPolicy'
@@ -26,28 +67,36 @@ Resources:
           Resource: !Sub 'arn:aws:s3:::${S3Bucket}/*'
           Principal:
             CanonicalUser: !GetAtt CloudFrontOriginAccessIdentity.S3CanonicalUserId
+
   CloudFrontOriginAccessIdentity:
     Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'
     Properties:
       CloudFrontOriginAccessIdentityConfig:
         Comment: !Ref S3Bucket
+
   CloudFrontDistribution:
     Type: 'AWS::CloudFront::Distribution'
     Properties:
       DistributionConfig:
+        Comment: 'CloudFront Distribution pointing to OctDiag S3 bucket.'
+        Origins:
+          - DomainName: !Sub '${S3Bucket}.s3.amazonaws.com'
+            Id: s3origin
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}'
         CustomErrorResponses:
         - ErrorCode: 403 # not found
           ResponseCode: 404
           ResponsePagePath: !Ref ErrorPagePath
         DefaultCacheBehavior:
           AllowedMethods:
-          - GET
-          - HEAD
-          - OPTIONS
+            - GET
+            - HEAD
+            - OPTIONS
           CachedMethods:
-          - GET
-          - HEAD
-          - OPTIONS
+            - GET
+            - HEAD
+            - OPTIONS
           Compress: true
           DefaultTTL: 3600 # in seconds
           ForwardedValues:
@@ -61,12 +110,13 @@ Resources:
         DefaultRootObject: !Ref DefaultRootObject
         Enabled: true
         HttpVersion: http2
-        Origins:
-        - DomainName: !GetAtt 'S3Bucket.DomainName'
-          Id: s3origin
-          S3OriginConfig:
-            OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}'
-        PriceClass: 'PriceClass_All'
+        PriceClass: 'PriceClass_100'
+        Aliases:
+          - !Ref 'AlternateDomainNames'
+        ViewerCertificate:
+          AcmCertificateArn: !Sub 'arn:aws:acm:${AWS::Region}:${AWS::AccountId}:certificate/${ACMCertificateIdentifier}'
+          SslSupportMethod: !Ref 'SslSupportMethod'
+          MinimumProtocolVersion: !Ref 'MinimumProtocolVersion'
 
   # Create an IAM user with Access Keys to enable automated deployment of the website to this bucket
   PublishUser:
@@ -79,12 +129,25 @@ Resources:
             - Action: 's3:*'
               Effect: Allow
               Resource: 
-              - !Sub 'arn:aws:s3:::${S3Bucket}'
-              - !Sub 'arn:aws:s3:::${S3Bucket}/*'
+                - !Sub 'arn:aws:s3:::${S3Bucket}'
+                - !Sub 'arn:aws:s3:::${S3Bucket}/*'
+                
   PublishCredentials:
     Type: 'AWS::IAM::AccessKey'
     Properties:
       UserName: !Ref PublishUser
+
+  WebAppDnsRecord:
+    Type: 'AWS::Route53::RecordSetGroup'
+    Properties:
+      HostedZoneName: 'octdiag.net.'
+      RecordSets:
+        - Name: !Ref AlternateDomainNames
+          AliasTarget:
+            DNSName: !GetAtt 'CloudFrontDistribution.DomainName'
+            HostedZoneId: ZY6G6E3RJ190P
+          Type: A
+
 Outputs:
   BucketName:
     Description: 'S3 Bucket Name'
